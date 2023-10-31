@@ -3,6 +3,7 @@ Python script that splits .OTR files for compatability on the Nintendo Switch
 
 ## Prerequisites
 
+  - Plenty of free space on your Switch
   - [Retro](https://github.com/HarbourMasters64/retro)
   - [OoT-Reloaded Source Files](https://github.com/GhostlyDark/OoT-Reloaded-SoH/tree/master/OoT%20Reloaded%20(SoH)) (or any other .OTR source exceeding 4GB)
   - [Python](https://www.python.org/)
