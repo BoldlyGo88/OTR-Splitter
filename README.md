@@ -15,7 +15,10 @@ Python script that splits .otr files for compatability on the Nintendo Switch
 
 1. Navigate to the OoT-Reloaded Source directory (OoT-Reloaded-SoH-master\OoT Reloaded (SoH)) (or whatever you have)
 2. Download or copy the python script into the source directory and launch it
-3. Enter a value between 1000 and 1500, when testing I used 1350 and if you are going to be doing the OoT Reloaded I suggest using 1350 or else Scene_6 will be too large.
+3. Enter a value between 1000 and 1500
+   - When I was testing with OoT Reloaded I used 1350, I suggest using 1350, anything higher risks Scene_5/6 being bigger than 4GB
+   - If you decide you want to use a higher number make a copy of the scenes folder and manifest.json and do those at 1350 separately
+       - You can also remove the "mq" folder within scenes if your copy of Ship of Harkinian does not contain Master Quest, I can't say how much space this will save
 4. Wait for everything to finish and get the newly created directories ready
 5. Open [Retro](https://github.com/HarbourMasters64/retro) and Press "Create OTR"
 6. Press "Replace Textures" and then press "Yes", select any of the new directories from step 4
