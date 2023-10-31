@@ -1,5 +1,8 @@
 # OTR-Splitter
-Python script that splits .OTR files for compatability on the Nintendo Switch
+Python script that splits .otr files for compatability on the Nintendo Switch
+
+## Space warning
+.otr files can get bigger once split and I currently don't know a way to fix it/why its happening/or im overlooking something on my end, so until then this warning will have to do
 
 ## Prerequisites
 
@@ -8,7 +11,7 @@ Python script that splits .OTR files for compatability on the Nintendo Switch
   - [OoT-Reloaded Source Files](https://github.com/GhostlyDark/OoT-Reloaded-SoH/tree/master/OoT%20Reloaded%20(SoH)) (or any other .OTR source exceeding 4GB)
   - [Python](https://www.python.org/)
 
-### Creating the .OTR's for the Switch
+### Creating the .otr's for the Switch
 
 1. Navigate to the OoT-Reloaded Source directory (OoT-Reloaded-SoH-master\OoT Reloaded (SoH)) (or whatever you have)
 2. Download or copy the python script into the source directory and launch it
