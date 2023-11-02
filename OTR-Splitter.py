@@ -9,7 +9,7 @@ combineable = []
 cthresh = 0
 cmb_manifest = {}
 
-print("OTR-Splitter v1.2\n")
+print("OTR-Splitter v1.3\n")
 print("1. You can't put a value lower than 1000, doing so will just make it 1000\n2. Default and tested value is 1350\n3. Values <1350 could result in the Misc folder filling and more parts being made todo: fix this one day")
 print("4. Files that are split and converted to .otr with Retro will probably take a lot more space, so plan for that\n")
 print("How many files will be in each partition, for fat32 and to be safe use <=1400")
@@ -42,83 +42,67 @@ def get_dir_size(directory):
     
     return count
 
-def dir_partition(directory, mdata, combined=False):
+def dir_partition(directory, mdata):
+    global cthresh
     parts = 1
     count = 0
     tmp = {}
     tmp_manifest = {}
     dir_size = get_dir_size(directory)
+    is_misc = True if dir_size <= split_amount and (dir_size + cthresh) <= split_amount else False
     
-    if not combined:
-        ine_create(f"OTR-Splitter-{directory}_{parts}")
+    if is_misc:
+        combineable.append(directory)
+        cthresh += dir_size
     
-        for source, sd, files in os.walk(directory):
-            for f in files:
-                path = os.path.join(source, f)
+    ine_create(f"OTR-Splitter-{directory}_{parts}" if not is_misc else "OTR-Splitter-Misc")
+
+    for source, sd, files in os.walk(directory):
+        for f in files:
+            path = os.path.join(source, f)
             
-                if count % split_amount == 0 and count > 0:
-                    ine_create(f"OTR-Splitter-{directory}_{parts}")
-                    with open(f"OTR-Splitter-{directory}_{parts}/manifest.json", "w") as newman:
-                        json.dump(tmp_manifest, newman, indent=2)
+            # implementing misc spliting should be simple now
+            # todo!!!
+            if not is_misc and count % split_amount == 0 and count > 0:
+                ine_create(f"OTR-Splitter-{directory}_{parts}")
+                with open(f"OTR-Splitter-{directory}_{parts}/manifest.json", "w") as newman:
+                    json.dump(tmp_manifest, newman, indent=2)
+            
+                tmp_manifest = {}
+                count = 0
+                parts += 1
                     
-                    tmp_manifest = {}
-                    count = 0
-                    parts += 1
-                                
-                if count == 0:
-                    tmp[f"OTR-Splitter-{directory}_{parts}"] = { "paths": [], "names": []}
-                
-                if parts == math.ceil(dir_size/split_amount):
-                    if "OTR-Splitter-Misc" not in tmp:
-                        tmp[f"OTR-Splitter-Misc"] = { "paths": [], "names": []}
-                    tmp["OTR-Splitter-Misc"]["paths"].append(path)
-                    tmp["OTR-Splitter-Misc"]["names"].append(os.path.splitext(f)[0])
-                else:
-                    tmp[f"OTR-Splitter-{directory}_{parts}"]["paths"].append(path)
-                    tmp[f"OTR-Splitter-{directory}_{parts}"]["names"].append(os.path.splitext(f)[0])
-             
-                if manifest_path(path) in mdata:
-                    print(f"Adding {os.path.splitext(f)[0]} to manifest...")
-                    if parts == math.ceil(dir_size/split_amount):
-                        cmb_manifest[manifest_path(path)] = mdata[manifest_path(path)]
-                    else:
-                        tmp_manifest[manifest_path(path)] = mdata[manifest_path(path)]
-                    
-                count += 1
-    
-        if len(tmp_manifest) > 0:
-            ine_create(f"OTR-Splitter-{directory}_{parts}")
-            with open(f"OTR-Splitter-{directory}_{parts}/manifest.json", "w") as newman:
-                json.dump(tmp_manifest, newman, indent=2)
-   
-        for key, data in tmp.items():
-            for i, name in enumerate(data["names"]):
-                print(f"Copying {name}...")
-                copy_structure(directory, data["paths"][i], key)
-                shutil.copy2(f"{data['paths'][i]}", f"{key}/{data['paths'][i]}")
-    else:
-        ine_create("OTR-Splitter-Misc")
+            if count == 0:
+                tmp[f"OTR-Splitter-{directory}_{parts}"] = { "paths": [], "names": []}
         
-        for source, sd, files in os.walk(directory):
-            for f in files:
-                path = os.path.join(source, f)
-            
-                if count == 0:
-                    tmp["OTR-Splitter-Misc"] = { "paths": [], "names": []}
-            
+            if parts == math.ceil(dir_size/split_amount) or is_misc:
+                if "OTR-Splitter-Misc" not in tmp:
+                    tmp[f"OTR-Splitter-Misc"] = { "paths": [], "names": []}
                 tmp["OTR-Splitter-Misc"]["paths"].append(path)
                 tmp["OTR-Splitter-Misc"]["names"].append(os.path.splitext(f)[0])
-             
-                if manifest_path(path) in mdata:
-                    print(f"Adding {os.path.splitext(f)[0]} to manifest...")
+            else:
+                tmp[f"OTR-Splitter-{directory}_{parts}"]["paths"].append(path)
+                tmp[f"OTR-Splitter-{directory}_{parts}"]["names"].append(os.path.splitext(f)[0])
+     
+            if manifest_path(path) in mdata:
+                print(f"Adding {os.path.splitext(f)[0]} to manifest...")
+                if parts == math.ceil(dir_size/split_amount) or is_misc:
                     cmb_manifest[manifest_path(path)] = mdata[manifest_path(path)]
-                
-                count += 1
-                        
-        for i, name in enumerate(tmp["OTR-Splitter-Misc"]["names"]):
+                else:
+                    tmp_manifest[manifest_path(path)] = mdata[manifest_path(path)]
+            
+            count += 1
+
+    if len(tmp_manifest) > 0 and not is_misc:
+        ine_create(f"OTR-Splitter-{directory}_{parts}")
+        with open(f"OTR-Splitter-{directory}_{parts}/manifest.json", "w") as newman:
+            json.dump(tmp_manifest, newman, indent=2)
+
+    for key, data in tmp.items():
+        for i, name in enumerate(data["names"]):
             print(f"Copying {name}...")
-            copy_structure(directory, tmp["OTR-Splitter-Misc"]["paths"][i], "OTR-Splitter-Misc")
-            shutil.copy2(f"{tmp['OTR-Splitter-Misc']['paths'][i]}", f"OTR-Splitter-Misc/{tmp['OTR-Splitter-Misc']['paths'][i]}")
+            copy_structure(directory, data["paths"][i], key)
+            shutil.copy2(f"{data['paths'][i]}", f"{key}/{data['paths'][i]}")
 
 if not os.path.exists(manifest):
     raise FileNotFoundError("manifest.json could not be found!")
@@ -127,10 +111,7 @@ with open(manifest, "r") as man:
     mandata = json.load(man)
 
 for dir in [di for di in os.listdir(current_directory) if os.path.isdir(os.path.join(current_directory, di))]:
-    if get_dir_size(dir) <= split_amount and (get_dir_size(dir) + cthresh) <= split_amount:
-        combineable.append(dir)
-        cthresh += get_dir_size(dir)
-    dir_partition(dir, mandata, True) if dir in combineable else dir_partition(dir, mandata)
+    dir_partition(dir, mandata)
 
 if len(cmb_manifest) > 0:
     ine_create("OTR-Splitter-Misc")
